@@ -1,23 +1,32 @@
 const canvas = document.querySelector("canvas")
 const c = canvas.getContext('2d')
 
+// Wymiary wyrenderowanej gry
 canvas.width = 1024
 canvas.height = 576
 
+// Tworzenie mapy kolizji na podstawie danych z tablicy collisions
 const collisionsMap = []
 for (let i = 0; i < collisions.length; i += 70) {
     collisionsMap.push(collisions.slice(i, 70 + i))
 }
 
-const boundaries = []
-const offset = {
-    x: -1185,
-    y: -650
+// Tworzenie mapy stref grzybów na podstawie danych z tablicy mushroomZonesData
+const mushroomZonesMap = []
+for (let i = 0; i < mushroomZonesData.length; i += 70) {
+    mushroomZonesMap.push(mushroomZonesData.slice(i, 70 + i))
 }
 
+const boundaries = [] // Tablica przechowująca obiekty granic
+const offset = {
+    x: -1185, // Przesunięcie w poziomie
+    y: -650   // Przesunięcie w pionie
+}
+
+// Iteracja po mapie kolizji w celu utworzenia granic
 collisionsMap.forEach((row, i) => {
     row.forEach((symbol, j) => {
-        if (symbol === 1025)
+        if (symbol === 1025) // Symbol 1025 oznacza zaznaczony na mapie obszar
         boundaries.push(
             new Boundary({
                 position: {
@@ -29,26 +38,63 @@ collisionsMap.forEach((row, i) => {
     })
 })
 
+const mushroomZones = [] // Tablica przechowująca obiekty stref grzybów
+
+// Iteracja po mapie stref grzybów w celu utworzenia stref grzybów
+mushroomZonesMap.forEach((row, i) => {
+    row.forEach((symbol, j) => {
+        if (symbol === 1025) // Symbol 1025 oznacza zaznaczony na mapie obszar
+        mushroomZones.push(
+            new Boundary({
+                position: {
+                    x: j * Boundary.width + offset.x,
+                    y: i * Boundary.height + offset.y
+                }
+            }
+        ))
+    })
+})
+
+// Ładowanie obrazów
+
 const image = new Image()
 image.src = './img/Mushroom Picker Game Map.png'
 
 const foregroundImage = new Image()
 foregroundImage.src = './img/foreground objects.png'
 
-const playerImage = new Image()
-playerImage.src = './img/playerDown.png'
+const playerDownImage = new Image()
+playerDownImage.src = './img/playerDown.png'
 
+const playerUpImage = new Image()
+playerUpImage.src = './img/playerUp.png'
+
+const playerLeftImage = new Image()
+playerLeftImage.src = './img/playerLeft.png'
+
+const playerRightImage = new Image()
+playerRightImage.src = './img/playerRight.png'
+
+
+// Inicjalizacja gracza
 const player = new Sprite({
     position: {
         x: canvas.width / 2 - 192 / 4 / 2,
         y: canvas.height / 2 - 68 / 2
     },
-    image: playerImage,
+    image: playerDownImage,
     frames: {
         max: 4
+    },
+    sprites: {
+        up: playerUpImage,
+        left: playerLeftImage,
+        right: playerRightImage,
+        down: playerDownImage
     }
 })
 
+// Inicjalizacja tła
 const background = new Sprite({ 
     position: {
         x: offset.x,
@@ -57,6 +103,7 @@ const background = new Sprite({
     image: image
 })
 
+// Inicjalizacja obiektów na pierwszym planie
 const foreground = new Sprite({ 
     position: {
         x: offset.x,
@@ -65,6 +112,7 @@ const foreground = new Sprite({
     image: foregroundImage
 })
 
+// Tablica przechowująca klawiszę sterowania
 const keys = {
 
     w: {
@@ -81,11 +129,29 @@ const keys = {
 
     d: {
         pressed: false
+    },
+
+    ArrowUp: {
+        pressed: false
+    },
+
+    ArrowLeft: {
+        pressed: false
+    },
+
+    ArrowDown: {
+        pressed: false
+    },
+
+    ArrowRight: {
+        pressed: false
     }
 }
 
-const movables = [background, ...boundaries, foreground]
+// Zamiast gracza porusza się mapa, tablica zawiera elementy, którę będą się ruszać
+const movables = [background, ...boundaries, foreground, ...mushroomZones]
 
+// Funkcja sprawdzająca kolizje
 function rectangularCollision({rectangle1, rectangle2}) {
     return (
         rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
@@ -95,19 +161,29 @@ function rectangularCollision({rectangle1, rectangle2}) {
     )
 }
 
+// Funkcja animacji gry
 function animate() {
+    // Uruchamia funkcję animate() w każdej klatce animacji, zapewniając płynność ruchu i aktualizację obiektów na ekranie.
     window.requestAnimationFrame(animate)
 
+    // Rysowanie obiektów
     background.draw()
     boundaries.forEach(boundary => {
         boundary.draw()
-        
+    })
+    mushroomZones.forEach(mushroomZone => {
+        mushroomZone.draw()
     })
     player.draw()
     foreground.draw()
 
     let moving = true
+    player.moving = false
+
+    // Obsługa ruchu mapy
     if (keys.w.pressed && lastKey === 'w') {
+        player.moving = true
+        player.image = player.sprites.up
         for (let i = 0; i < boundaries.length; i++) {
             const boundary = boundaries[i]
             if(
@@ -132,6 +208,8 @@ function animate() {
         }
     }
     else if (keys.a.pressed && lastKey === 'a') {
+        player.moving = true
+        player.image = player.sprites.left
         for (let i = 0; i < boundaries.length; i++) {
             const boundary = boundaries[i]
             if(
@@ -156,6 +234,8 @@ function animate() {
         }
     }
     else if (keys.s.pressed && lastKey === 's') {
+        player.moving = true
+        player.image = player.sprites.down
         for (let i = 0; i < boundaries.length; i++) {
             const boundary = boundaries[i]
             if(
@@ -180,6 +260,112 @@ function animate() {
         }
     }
     else if (keys.d.pressed && lastKey === 'd') {
+        player.moving = true
+        player.image = player.sprites.right
+        for (let i = 0; i < boundaries.length; i++) {
+            const boundary = boundaries[i]
+            if(
+                rectangularCollision({
+                    rectangle1: player,
+                    rectangle2: {...boundary, position: {
+                        x: boundary.position.x - 2,
+                        y: boundary.position.y
+                    }}
+                })
+            ) {
+                // console.log('colliding')
+                moving = false
+                break
+            }
+        }
+
+        if (moving) {
+            movables.forEach(movable => {
+                movable.position.x -= 2
+            })
+        }
+    }
+    else if (keys.ArrowUp.pressed && lastKey === "ArrowUp") {
+        player.moving = true
+        player.image = player.sprites.up
+        for (let i = 0; i < boundaries.length; i++) {
+            const boundary = boundaries[i]
+            if(
+                rectangularCollision({
+                    rectangle1: player,
+                    rectangle2: {...boundary, position: {
+                        x: boundary.position.x,
+                        y: boundary.position.y + 2
+                    }}
+                })
+            ) {
+                // console.log('colliding')
+                moving = false
+                break
+            }
+        }
+
+        if (moving) {
+            movables.forEach(movable => {
+                movable.position.y += 2
+            })
+        }
+    }
+    else if (keys.ArrowLeft.pressed && lastKey === "ArrowLeft") {
+        player.moving = true
+        player.image = player.sprites.left
+        for (let i = 0; i < boundaries.length; i++) {
+            const boundary = boundaries[i]
+            if(
+                rectangularCollision({
+                    rectangle1: player,
+                    rectangle2: {...boundary, position: {
+                        x: boundary.position.x + 2,
+                        y: boundary.position.y
+                    }}
+                })
+            ) {
+                // console.log('colliding')
+                moving = false
+                break
+            }
+        }
+
+        if (moving) {
+            movables.forEach(movable => {
+                movable.position.x += 2
+            })
+        }
+    }
+    else if (keys.ArrowDown.pressed && lastKey === "ArrowDown") {
+        player.moving = true
+        player.image = player.sprites.down
+        for (let i = 0; i < boundaries.length; i++) {
+            const boundary = boundaries[i]
+            if(
+                rectangularCollision({
+                    rectangle1: player,
+                    rectangle2: {...boundary, position: {
+                        x: boundary.position.x,
+                        y: boundary.position.y - 2
+                    }}
+                })
+            ) {
+                // console.log('colliding')
+                moving = false
+                break
+            }
+        }
+
+        if (moving) {
+            movables.forEach(movable => {
+                movable.position.y -= 2
+            })
+        }
+    }
+    else if (keys.ArrowRight.pressed && lastKey === "ArrowRight") {
+        player.moving = true
+        player.image = player.sprites.right
         for (let i = 0; i < boundaries.length; i++) {
             const boundary = boundaries[i]
             if(
@@ -204,9 +390,11 @@ function animate() {
         }
     }
 }
+
 animate()
 
 let lastKey = ''
+// Obsługa naciśnięcia klawiszy
 window.addEventListener('keydown', (e) => {
 
     switch (e.key) {
@@ -230,9 +418,30 @@ window.addEventListener('keydown', (e) => {
             keys.d.pressed = true
             lastKey = 'd'
             break;
+
+        case "ArrowUp": 
+            keys.ArrowUp.pressed = true
+            lastKey = "ArrowUp"
+            break;
+
+        case "ArrowLeft": 
+            keys.ArrowLeft.pressed = true
+            lastKey = "ArrowLeft"
+            break;
+
+        case "ArrowDown": 
+            keys.ArrowDown.pressed = true
+            lastKey = "ArrowDown"
+            break;
+
+        case "ArrowRight": 
+            keys.ArrowRight.pressed = true
+            lastKey = "ArrowRight"
+            break;
     }
 })
 
+// Obsługa zwolnienia klawiszy
 window.addEventListener('keyup', (e) => {
 
     switch (e.key) {
@@ -251,6 +460,22 @@ window.addEventListener('keyup', (e) => {
 
         case 'd': 
             keys.d.pressed = false
+            break;
+
+        case "ArrowUp": 
+            keys.ArrowUp.pressed = false
+            break;
+
+        case "ArrowLeft": 
+            keys.ArrowLeft.pressed = false
+            break;
+
+        case "ArrowDown": 
+            keys.ArrowDown.pressed = false
+            break;
+
+        case "ArrowRight": 
+            keys.ArrowRight.pressed = false
             break;
     }
 })
