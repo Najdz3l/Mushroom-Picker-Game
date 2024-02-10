@@ -250,7 +250,7 @@ function rectangularCollision({rectangle1, rectangle2}) {
 }
 
 let points = 0;
-let timeRemaining = 10; // Długość gry w sekundach
+let timeRemaining = 60; // Długość gry w sekundach
 let gameIsOver = false; // Flaga wskazująca, czy gra się zakończyła
 
 // Funkcja aktualizująca czas co sekundę
