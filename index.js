@@ -45,15 +45,16 @@ mushroomZonesMap.forEach((row, i) => {
     row.forEach((symbol, j) => {
         if (symbol === 1025) // Symbol 1025 oznacza zaznaczony na mapie obszar
         mushroomZones.push(
-            new Boundary({
+            new MushroomZones({
                 position: {
-                    x: j * Boundary.width + offset.x,
-                    y: i * Boundary.height + offset.y
+                    x: j * MushroomZones.width + offset.x,
+                    y: i * MushroomZones.height + offset.y
                 }
             }
         ))
     })
 })
+// console.log(mushroomZones)
 
 // Ładowanie obrazów
 
@@ -74,6 +75,31 @@ playerLeftImage.src = './img/playerLeft.png'
 
 const playerRightImage = new Image()
 playerRightImage.src = './img/playerRight.png'
+
+const mushroomToadstoolImage = new Image()
+mushroomToadstoolImage.src = './img/toadstool.png'
+
+const mushroomBoletusImage = new Image()
+mushroomBoletusImage.src = './img/boletus.png'
+
+
+const mushroomToadstool = new Sprite({
+    position: {
+        x: canvas.width / 2,
+        y: canvas.height / 2
+    },
+    image: mushroomToadstoolImage
+})
+
+const mushroomBoletus = new Sprite({
+    position: {
+        x: 351,
+        y: -170
+    },
+    image: mushroomBoletusImage
+})
+
+console.log(mushroomZones)
 
 
 // Inicjalizacja gracza
@@ -148,8 +174,44 @@ const keys = {
     }
 }
 
+// Funckja losująca pierwsze 15 grzybów na mapie
+// Losuje 15 losowych i nie powtarzajacych sie position z arraya mushroomZones
+
+selectedMushroomPlaces = []
+const mushrooms = []
+
+// Funkcja generująca miejsca dla grzybów
+function newGameMushrooms() {
+    while (selectedMushroomPlaces.length < 15) {
+        const index = Math.floor(Math.random() * mushroomZones.length);
+        // Sprawdź, czy wylosowany indeks nie został wcześniej wybrany
+        if (!selectedMushroomPlaces.includes(index)) {
+            selectedMushroomPlaces.push(index) // Dodaj unikalny indeks do tablicy
+        }
+    }
+    console.log(selectedMushroomPlaces); // Wyświetl wybrane miejsca
+
+
+    // Tworzenie grzybów na wybranych obszarach
+    for (let i = 0; i < 15; i++) {
+        const mushroomZone = mushroomZones[selectedMushroomPlaces[i]] // Pobierz obszar, na którym ma pojawić się grzyb wykorzystując wcześniej wylosowane indeksy
+        const mushroom = new MushroomZones({
+            position: {
+                x: mushroomZone.position.x,
+                y: mushroomZone.position.y
+            },
+            image: mushroomBoletusImage
+        });
+        mushrooms.push(mushroom); // Dodaj grzyb do tablicy grzybów
+    }
+    
+    // Wyświetl utworzone grzyby
+    console.log(mushrooms)
+}
+newGameMushrooms()
+
 // Zamiast gracza porusza się mapa, tablica zawiera elementy, którę będą się ruszać
-const movables = [background, ...boundaries, foreground, ...mushroomZones]
+const movables = [background, ...boundaries, foreground, ...mushroomZones, ...mushrooms, mushroomToadstool, mushroomBoletus]
 
 // Funkcja sprawdzająca kolizje
 function rectangularCollision({rectangle1, rectangle2}) {
@@ -161,11 +223,15 @@ function rectangularCollision({rectangle1, rectangle2}) {
     )
 }
 
+
+
 // Funkcja animacji gry
 function animate() {
     // Uruchamia funkcję animate() w każdej klatce animacji, zapewniając płynność ruchu i aktualizację obiektów na ekranie.
     window.requestAnimationFrame(animate)
 
+    // newGameMushrooms()
+    
     // Rysowanie obiektów
     background.draw()
     boundaries.forEach(boundary => {
@@ -174,6 +240,11 @@ function animate() {
     mushroomZones.forEach(mushroomZone => {
         mushroomZone.draw()
     })
+    mushrooms.forEach(mushroom => {
+        mushroom.drawMushroom()
+    })
+
+
     player.draw()
     foreground.draw()
 
