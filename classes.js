@@ -49,7 +49,8 @@ class Boundary {
     }
 
     draw() {
-        c.fillStyle = 'rgba(255, 0, 0, 0.5)'
+        // c.fillStyle = 'rgba(255, 0, 0, 0.5)' // Wyświetl boundaries
+        c.fillStyle = 'rgba(255, 0, 0, 0)'
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 }
@@ -67,7 +68,8 @@ class MushroomZones {
     }
 
     draw() {
-        c.fillStyle = 'rgba(0, 0, 255, 0.5)'
+        // c.fillStyle = 'rgba(0, 0, 255, 0.5)' // Wyświetl mushroomZones
+        c.fillStyle = 'rgba(0, 0, 255, 0)'
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
     drawMushroom() {
