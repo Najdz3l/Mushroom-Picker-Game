@@ -1,7 +1,24 @@
 const canvas = document.querySelector("canvas")
 const c = canvas.getContext('2d')
 
-// Wymiary wyrenderowanej gry
+// Dodaj element HTML dla menu
+const menuElement = document.createElement('div');
+menuElement.classList.add('menu');
+menuElement.innerHTML = `
+    <h1>Mushroom Picker</h1>
+    <p>Your score:</p>
+    <button id="start-button">Start Game</button>
+    <img src="./img/Mushroom Picker Game Menu 3.png">
+`;
+document.body.appendChild(menuElement);
+
+// Funkcja rozpoczynająca grę po kliknięciu przycisku "Start Game"
+function startGame() {
+    // Ukryj menu
+    menuElement.style.display = 'none';
+    // Rozpocznij grę
+    canvas.style.display = 'block';
+    // Wymiary wyrenderowanej gry
 canvas.width = 1024
 canvas.height = 576
 
@@ -209,16 +226,15 @@ function newGameMushrooms() {
     })
 
     // Wyświetl utworzone grzyby
-    console.log(mushroomsPosition) // Pozycję 15 wybranych grzybów
-    console.log(whichMushrooms) // Lista obrazków grzybów
+    // console.log(mushroomsPosition) // Pozycję 15 wybranych grzybów
+    // console.log(whichMushrooms) // Lista obrazków grzybów
 
     // Policz ilość wystąpień './img/boletus.png' w tablicy whichMushrooms
     const boletusCount = whichMushrooms.filter(src => src === './img/boletus.png').length
-    console.log("'./img/boletus.png':", boletusCount)
+    // console.log("'./img/boletus.png':", boletusCount)
 }
 
 newGameMushrooms();
-
 
 // Zamiast gracza porusza się mapa, tablica zawiera elementy, którę będą się ruszać
 const movables = [background, ...boundaries, foreground, ...mushroomZones, ...mushroomsPosition]
@@ -233,15 +249,183 @@ function rectangularCollision({rectangle1, rectangle2}) {
     )
 }
 
+let points = 0;
+let timeRemaining = 60; // Długość gry w sekundach
+let gameIsOver = false; // Flaga wskazująca, czy gra się zakończyła
+
+// Funkcja aktualizująca czas co sekundę
+function updateTimer() {
+    timeRemaining--; // Dekrementacja pozostałego czasu
+
+    // Wyświetlenie pozostałego czasu w konsoli
+    console.log("Time remaining:", timeRemaining);
+
+    // Sprawdzenie, czy czas się skończył
+    if (timeRemaining <= 0) {
+        clearInterval(timerInterval); // Zatrzymanie odświeżania czasu
+        console.log("Game over!"); // Komunikat o zakończeniu gry
+        console.log("Final points: ", points);
+        gameIsOver = true; // Ustawienie flagi o zakończeniu gry
+        // Dodatkowe działania po zakończeniu czasu
+    }
+}
+
+// Uruchomienie funkcji updateTimer() co sekundę
+const timerInterval = setInterval(updateTimer, 1000);
+
+// Funkcja do zbierania punktów
+function collectMushroom() {
+    // Sprawdź, czy czas się skończył
+    if (timeRemaining > 0) {
+        let collectedBoletus = 0;
+        let collectedToadstool = 0;
+        const removedIndices = [];
+
+        for (let i = 0; i < mushroomsPosition.length; i++) {
+            const mushroom = mushroomsPosition[i];
+            if (rectangularCollision({ rectangle1: player, rectangle2: mushroom })) {
+                if (whichMushrooms[i] === './img/boletus.png') {
+                    collectedBoletus++;
+                } else if (whichMushrooms[i] === './img/toadstool.png') {
+                    collectedToadstool++;
+                }
+
+                removedIndices.push(i);
+            }
+        }
+
+        for (let i = removedIndices.length - 1; i >= 0; i--) {
+            const index = removedIndices[i];
+            mushroomsPosition.splice(index, 1);
+            whichMushrooms.splice(index, 1);
+        }
+
+        // Dodawanie punktów za zebrane grzyby boletus
+        points += collectedBoletus;
+
+        // Odejmowanie punktów za zebrane grzyby toadstool
+        points -= collectedToadstool;
+
+        // Sprawdzenie, czy liczba punktów nie spadła poniżej zera
+        if (points < 0) {
+            points = 0;
+        }
+
+        // Sprawdź, czy na mapie znajduje się co najmniej 10 grzybów boletus
+        const boletusCount = whichMushrooms.filter(src => src === './img/boletus.png').length;
+        if (boletusCount < 10) {
+            // Wygeneruj nowego grzyba boletus
+            const index = Math.floor(Math.random() * mushroomZones.length);
+            const mushroomZone = mushroomZones[index];
+            const mushroomImage = new Image();
+            const src = './img/boletus.png';
+
+            whichMushrooms.push(src);
+
+            // Przypisz adres URL do obiektu obrazka
+            mushroomImage.src = src;
+
+            const mushroom = new MushroomZones({
+                position: {
+                    x: mushroomZone.position.x,
+                    y: mushroomZone.position.y
+                },
+                image: mushroomImage
+            });
+
+            mushroomsPosition.push(mushroom); // Dodaj grzyb do tablicy grzybów
+
+            // Dodaj nowego grzyba do tablicy movables
+            movables.push(mushroom);
+        }
+    } else {
+        console.log("Time is up! You can't collect points anymore.");
+        // Dodatkowe działania po zakończeniu czasu, jeśli są wymagane
+    }
+}
+
+
+// Funkcja obsługująca klawiaturę
+function handleKeyPress(event) {
+    if (event.key === 'e') {
+        collectMushroom();
+        let collectedBoletus = 0
+        let collectedToadstool = 0
+
+        const removedIndices = []
+
+        for (let i = 0; i < mushroomsPosition.length; i++) {
+            const mushroom = mushroomsPosition[i]
+            if (rectangularCollision({ rectangle1: player, rectangle2: mushroom })) {
+                if (whichMushrooms[i] === './img/boletus.png') {
+                    collectedBoletus++
+                } else if (whichMushrooms[i] === './img/toadstool.png') {
+                    collectedToadstool++
+                }
+
+                removedIndices.push(i)
+            }
+        }
+
+        for (let i = removedIndices.length - 1; i >= 0; i--) {
+            const index = removedIndices[i]
+            mushroomsPosition.splice(index, 1)
+            whichMushrooms.splice(index, 1)
+        }
+
+        // Dodawanie punktów za zebrane grzyby boletus
+        points += collectedBoletus
+
+        // Odejmowanie punktów za zebrane grzyby toadstool
+        points -= collectedToadstool
+
+        // Sprawdzenie, czy liczba punktów nie spadła poniżej zera
+        if (points < 0) {
+            points = 0
+        }
+
+        // console.log('Points:', points)
+
+        // Generowanie nowego grzyba
+        while (mushroomsPosition.length < 15) {
+            const index = Math.floor(Math.random() * mushroomZones.length)
+            const mushroomZone = mushroomZones[index]
+            const mushroomImage = new Image()
+            const src = Math.random() > 0.5 ? './img/toadstool.png' : './img/boletus.png'
+            whichMushrooms.push(src)
+
+            mushroomImage.src = src
+
+            const mushroom = new MushroomZones({
+                position: {
+                    x: mushroomZone.position.x,
+                    y: mushroomZone.position.y
+                },
+                image: mushroomImage
+            })
+
+            mushroomsPosition.push(mushroom)
+
+            // Dodawanie nowego grzyba do tablicy movables
+            movables.push(mushroom)
+        }
+    }
+}
+
 // Funkcja animacji gry
 function animate() {
+    canvas.style.visibility = "visible"
     // Uruchamia funkcję animate() w każdej klatce animacji, zapewniając płynność ruchu i aktualizację obiektów na ekranie.
     window.requestAnimationFrame(animate)
 
-    // newGameMushrooms()
-    // setTimeout(function () {
-    //     newGameMushrooms()
-    // }, 3000);
+    if (gameIsOver) {
+        // Jeśli gra się zakończyła, przerywamy dalsze wykonywanie funkcji animate
+        canvas.style.display = 'none';
+        menuElement.style.display = 'grid';
+        pScore = document.querySelector('p');
+        pScore.textContent = `Your score: ${points}`;
+        return;
+    }
     
     // Rysowanie obiektów
     background.draw()
@@ -264,6 +448,20 @@ function animate() {
     let moving = true
     player.moving = false
 
+    for (let i = 0; i < mushroomsPosition.length; i++) {
+        const mushroomPosition = mushroomsPosition[i]
+
+        if (
+            rectangularCollision({
+                rectangle1: player,
+                rectangle2: mushroomPosition
+            })
+        ) {
+            window.addEventListener('keydown', handleKeyPress)
+            break
+        }
+    }
+    
     // Obsługa ruchu mapy
     if (keys.w.pressed && lastKey === 'w') {
         player.moving = true
@@ -563,3 +761,9 @@ window.addEventListener('keyup', (e) => {
             break;
     }
 })
+    animate();
+}
+
+// Dodaj obsługę kliknięcia przycisku "Start Game"
+const startButton = document.getElementById('start-button');
+startButton.addEventListener('click', startGame);
