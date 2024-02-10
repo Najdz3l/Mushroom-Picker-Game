@@ -264,6 +264,19 @@ function animate() {
     let moving = true
     player.moving = false
 
+        for (let i = 0; i < mushroomsPosition.length; i++) {
+            const mushroomPosition = mushroomsPosition[i]
+            if(
+                rectangularCollision({
+                    rectangle1: player,
+                    rectangle2: mushroomPosition
+                })
+            ) {
+                console.log('Mushroom collision')
+                break
+            }
+        }
+
     // Obsługa ruchu mapy
     if (keys.w.pressed && lastKey === 'w') {
         player.moving = true
