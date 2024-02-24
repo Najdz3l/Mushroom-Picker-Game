@@ -1,5 +1,5 @@
 class Sprite {
-    constructor({ position, velocity, image, frames = { max: 1 }, sprites }) {
+    constructor({ position, image, frames = { max: 1 }, sprites }) {
         this.position = position
         this.image = image
         this.frames = { ...frames, val: 0, elapsed: 0 }
@@ -31,7 +31,7 @@ class Sprite {
             this.frames.elapsed++
         }
 
-        if (this.frames.elapsed % 10 === 0) {
+        if (this.frames.elapsed % 30 === 0) {
             if (this.frames.val < this.frames.max - 1) this.frames.val++
             else this.frames.val = 0
         }
@@ -64,7 +64,6 @@ class MushroomZones {
         this.image = image
         this.width = 48
         this.height = 48
-
     }
 
     draw() {
