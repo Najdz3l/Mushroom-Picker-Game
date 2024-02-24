@@ -5,7 +5,7 @@ const c = canvas.getContext('2d') // Pobierz kontekst rysowania 2D dla elementu 
 const menuElement = document.createElement('div')
 menuElement.innerHTML = `
     <h1>Mushroom Picker</h1>
-    <p>Your score:</p>
+    <p>Your score: 0</p>
     <button id="start-button">Start Game</button>
     <img src="./img/Mushroom Picker Game Menu.png">
 `
@@ -250,7 +250,7 @@ function rectangularCollision({rectangle1, rectangle2}) {
 }
 
 let points = 0 // Liczba punktów na start gry
-let timeRemaining = 5 // Długość gry w sekundach
+let timeRemaining = 60 // Długość gry w sekundach
 let gameIsOver = false // Flaga wskazująca, czy gra się zakończyła
 
 // Funkcja aktualizująca czas co sekundę
@@ -413,18 +413,19 @@ function handleKeyPress(e) {
 
 // Funkcja animacji gry
 function animate() {
-    canvas.style.visibility = "visible"
-    // Uruchamia funkcję animate() w każdej klatce animacji, zapewniając płynność ruchu i aktualizację obiektów na ekranie.
-    window.requestAnimationFrame(animate)
-
+    // canvas.style.visibility = "visible"
     if (gameIsOver) {
         // Jeśli gra się zakończyła, przerywamy dalsze wykonywanie funkcji animate
         canvas.style.display = 'none';
         menuElement.style.display = 'grid';
         pScore = document.querySelector('p');
+        timeRemaining = 60;
         pScore.textContent = `Your score: ${points}`;
         return;
     }
+    // Uruchamia funkcję animate() w każdej klatce animacji, zapewniając płynność ruchu i aktualizację obiektów na ekranie.
+    window.requestAnimationFrame(animate)
+
     
     // Rysowanie obiektów
     background.draw()
