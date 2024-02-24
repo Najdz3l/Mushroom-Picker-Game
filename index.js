@@ -5,7 +5,7 @@ const c = canvas.getContext('2d') // Pobierz kontekst rysowania 2D dla elementu 
 const menuElement = document.createElement('div')
 menuElement.innerHTML = `
     <h1>Mushroom Picker</h1>
-    <p>Your score: 0</p>
+    <p id="score">Your score: 0</p>
     <button id="start-button">Start Game</button>
     <img src="./img/Mushroom Picker Game Menu.png">
 `
@@ -411,21 +411,23 @@ function handleKeyPress(e) {
     }
 }
 
+// canvas.innerHTML = `
+//     <p id="ingameScore">Score: 0</p>
+//     <p id="ingameTime">Time left: 60s</p>
+//     `
+
 // Funkcja animacji gry
 function animate() {
-    // canvas.style.visibility = "visible"
+
     if (gameIsOver) {
         // Jeśli gra się zakończyła, przerywamy dalsze wykonywanie funkcji animate
         canvas.style.display = 'none';
         menuElement.style.display = 'grid';
-        pScore = document.querySelector('p');
+        pScore = document.querySelector('#score');
         timeRemaining = 60;
         pScore.textContent = `Your score: ${points}`;
         return;
     }
-    // Uruchamia funkcję animate() w każdej klatce animacji, zapewniając płynność ruchu i aktualizację obiektów na ekranie.
-    window.requestAnimationFrame(animate)
-
     
     // Rysowanie obiektów
     background.draw()
@@ -440,10 +442,16 @@ function animate() {
     mushroomsPosition.forEach(mushroomPosition => {
         mushroomPosition.drawMushroom()
     })
-
-
+    
     player.draw()
     foreground.draw()
+
+    // Aktualizacja czasu i punktów
+    // document.getElementById('ingameScore').textContent = `Score: ${points}`;
+    // document.getElementById('ingameTime').textContent = `Time left: ${timeRemaining}s`;
+    
+    // Uruchamia funkcję animate() w każdej klatce animacji, zapewniając płynność ruchu i aktualizację obiektów na ekranie.
+    window.requestAnimationFrame(animate)
 
     let moving = true
     player.moving = false
@@ -462,7 +470,6 @@ function animate() {
         }
     }
     
-
 // Obsługa ruchu mapy
     if (keys.w.pressed && lastKey === 'w') {
         player.moving = true
