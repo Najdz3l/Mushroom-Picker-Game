@@ -48,22 +48,33 @@
         font-size: 2rem;
     }
     #ingameScore {
+        visibility: hidden;
         color: white;
         position: absolute;
         z-index: 9;
         top: 0px;
-        left: 0px;
+        left: 50%;
+        transform: translate(-50%, 0);
         font-size: 2rem;
     }
     #ingameTime {
+        visibility: hidden;
         color: white;
         position: absolute;
         z-index: 9;
-        top: 0px;
-        left: 0px;
+        top: 50px;
+        left: 50%;
+        transform: translate(-50%, 0);
         font-size: 2rem;
     }
 </style>
+
+<p id="ingameTime">
+    <span>Time Remaining: </span><span id="timeLeft">60s</span>
+</p>
+<p id="ingameScore">
+    <span>Score: </span><span id="actuallScore">0</span>
+</p>
 
 <canvas></canvas> <!-- Element canvas, na którym będzie renderowana gra -->
 

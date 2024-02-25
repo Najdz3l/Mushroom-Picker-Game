@@ -1,6 +1,9 @@
 const canvas = document.querySelector("canvas") // Wybranie elementu canvas
 const c = canvas.getContext('2d') // Pobierz kontekst rysowania 2D dla elementu canvas
 
+const ingameScore = document.querySelector("#ingameScore")
+const ingameTime = document.querySelector("#ingameTime")
+
 // Dodaj element HTML dla menu
 const menuElement = document.createElement('div')
 menuElement.innerHTML = `
@@ -19,6 +22,9 @@ function startGame() {
 menuElement.style.display = 'none'
 // Pokaż grę
 canvas.style.display = 'grid'
+
+ingameScore.style.visibility = 'visible'
+ingameTime.style.visibility = 'visible'
 
 // Wymiary wyrenderowanej gry
 canvas.width = 1024
@@ -250,21 +256,18 @@ function rectangularCollision({rectangle1, rectangle2}) {
 }
 
 let points = 0 // Liczba punktów na start gry
+document.querySelector("#actuallScore").textContent = points
 let timeRemaining = 60 // Długość gry w sekundach
 let gameIsOver = false // Flaga wskazująca, czy gra się zakończyła
 
 // Funkcja aktualizująca czas co sekundę
 function updateTimer() {
     timeRemaining-- // Dekrementacja pozostałego czasu
-
-    // Wyświetlenie pozostałego czasu w konsoli
-    console.log("Time remaining:", timeRemaining)
+    document.querySelector("#timeLeft").textContent = `${timeRemaining}s`
 
     // Sprawdzenie, czy czas się skończył
     if (timeRemaining <= 0) {
         clearInterval(timerInterval) // Zatrzymanie odświeżania czasu
-        console.log("Game over!") // Komunikat o zakończeniu gry
-        console.log("Final points: ", points)
         gameIsOver = true // Ustawienie flagi o zakończeniu gry
     }
 }
@@ -310,6 +313,8 @@ function collectMushroom() {
             points = 0
         }
 
+        document.querySelector("#actuallScore").textContent = points
+
         // Sprawdź, czy na mapie znajduje się co najmniej 10 grzybów boletus
         const boletusCount = whichMushrooms.filter(src => src === './img/boletus.png').length
         if (boletusCount < 10) {
@@ -338,8 +343,7 @@ function collectMushroom() {
             movables.push(mushroom)
         }
     } else {
-        console.log("Time is up! You can't collect points anymore.")
-        // Dodatkowe działania po zakończeniu czasu, jeśli są wymagane
+        // console.log("Time is up! You can't collect points anymore.")
     }
 }
 
@@ -411,21 +415,20 @@ function handleKeyPress(e) {
     }
 }
 
-// canvas.innerHTML = `
-//     <p id="ingameScore">Score: 0</p>
-//     <p id="ingameTime">Time left: 60s</p>
-//     `
-
 // Funkcja animacji gry
 function animate() {
 
     if (gameIsOver) {
-        // Jeśli gra się zakończyła, przerywamy dalsze wykonywanie funkcji animate
         canvas.style.display = 'none';
+        ingameScore.style.visibility = 'hidden'
+        ingameTime.style.visibility = 'hidden'
         menuElement.style.display = 'grid';
         pScore = document.querySelector('#score');
+        lastScore = points;
+        pScore.textContent = `Your score: ${lastScore}`;
         timeRemaining = 60;
-        pScore.textContent = `Your score: ${points}`;
+        document.querySelector("#timeLeft").textContent = `${timeRemaining}s`;
+        document.querySelector("#actuallScore").textContent = 0;
         return;
     }
     
